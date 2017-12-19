@@ -441,8 +441,7 @@ class ZFDebug_Controller_Plugin_Debug extends Zend_Controller_Plugin_Abstract
         #ZFDebug ol {margin:1em 0 0 0; padding:0; list-style-position: inside;}
         #ZFDebug li {margin:0;}
         #ZFDebug .clickable {cursor:pointer}
-        #ZFDebug #ZFDebug_info {display:block; height:32px;
-                       background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAyCAMAAABSxbpPAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAACFQTFRFFhYWIyMjGhoaHBwcJSUlExMTFBQUHx8fISEhGBgYJiYmWIZXxwAAAC5JREFUeNrsxskNACAMwLBAucr+A/OLWAEJv0wXQ1xSVBFiiiWKaGLr96EeAQYA2KMRY8RL/qEAAAAASUVORK5CYII=) }
+        #ZFDebug #ZFDebug_info {display:block; height:32px; }
         #ZFDebug #ZFDebugResize {cursor:row-resize; height:1px; border-top:1px solid #1a1a1a;border-bottom:1px solid #333333; }
         #ZFDebug .ZFDebug_span {padding:0 15px; line-height:32px; display:block; float:left}
         #ZFDebug .ZFDebug_panel {padding:0px 15px 15px 15px;
