@@ -74,7 +74,7 @@ class ZFDebug_Controller_Plugin_Debug extends Zend_Controller_Plugin_Abstract
      *
      * @var string
      */
-    protected $_version = '1.6.2';
+    protected $_version = '1.6.5';
 
     /**
      * Creates a new instance of the Debug Bar
@@ -351,7 +351,7 @@ class ZFDebug_Controller_Plugin_Debug extends Zend_Controller_Plugin_Abstract
      */
     protected function _getVersionPanel()
     {
-        $panel = "<h4>ZFDebug $this->_version – Zend Framework "
+        $panel = "<h4>ZFDebug for Fokus MAM $this->_version – Zend Framework "
                . Zend_Version::VERSION . " on PHP " . phpversion() . "</h4>\n"
                . "<p>©2008-2013 <a href='http://jokke.dk'>Joakim Nygård</a>" . $this->getLinebreak()
                . "with contributions by <a href='http://www.bangal.de'>Andreas Pankratz</a> and others</p>"
