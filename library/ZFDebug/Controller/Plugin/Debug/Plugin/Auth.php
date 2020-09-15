@@ -6,7 +6,7 @@
  * @package    ZFDebug_Controller
  * @subpackage Plugins
  * @copyright  Copyright (c) 2008-2009 ZF Debug Bar Team (http://code.google.com/p/zfdebug)
- * @license    http://code.google.com/p/zfdebug/wiki/License     New BSD License
+ * @license    https://github.com/jokkedk/ZFDebug/blob/master/license     New BSD License
  * @version    $Id: $
  */
 
@@ -15,7 +15,7 @@
  * @package    ZFDebug_Controller
  * @subpackage Plugins
  * @copyright  Copyright (c) 2008-2009 ZF Debug Bar Team (http://code.google.com/p/zfdebug)
- * @license    http://code.google.com/p/zfdebug/wiki/License     New BSD License
+ * @license    https://github.com/jokkedk/ZFDebug/blob/master/license     New BSD License
  */
 class ZFDebug_Controller_Plugin_Debug_Plugin_Auth implements ZFDebug_Controller_Plugin_Debug_Plugin_Interface
 {
@@ -24,28 +24,28 @@ class ZFDebug_Controller_Plugin_Debug_Plugin_Auth implements ZFDebug_Controller_
      *
      * @var string
      */
-    protected $_identifier = 'auth';
+    protected $identifier = 'auth';
 
     /**
      * Contains Zend_Auth object
      *
      * @var Zend_Auth
      */
-    protected $_auth;
+    protected $auth;
 
     /**
      * Contains "column name" for the username
      *
      * @var string
      */
-    protected $_user = 'user';
+    protected $user = 'user';
 
     /**
      * Contains "column name" for the role
      *
      * @var string
      */
-    protected $_role = 'role';
+    protected $role = 'role';
 
     /**
      * Contains Acls for this application
@@ -63,12 +63,12 @@ class ZFDebug_Controller_Plugin_Debug_Plugin_Auth implements ZFDebug_Controller_
      */
     public function __construct(array $options = array())
     {
-        $this->_auth = Zend_Auth::getInstance();
+        $this->auth = Zend_Auth::getInstance();
         if (isset($options['user'])) {
-            $this->_user = $options['user'];
+            $this->user = $options['user'];
         }
         if (isset($options['role'])) {
-            $this->_role = $options['role'];
+            $this->role = $options['role'];
         }
     }
 
@@ -79,7 +79,7 @@ class ZFDebug_Controller_Plugin_Debug_Plugin_Auth implements ZFDebug_Controller_
      */
     public function getIdentifier()
     {
-        return $this->_identifier;
+        return $this->identifier;
     }
 
     /**
@@ -102,15 +102,15 @@ class ZFDebug_Controller_Plugin_Debug_Plugin_Auth implements ZFDebug_Controller_
         $username = 'Not Authed';
         $role = 'Unknown Role';
 
-        if (!$this->_auth->hasIdentity()) {
+        if (!$this->auth->hasIdentity()) {
             return 'Not authorized';
         }
-        $identity = $this->_auth->getIdentity();
+        $identity = $this->auth->getIdentity();
         if (is_object($identity)) {
-            $username = $this->_auth->getIdentity()->{$this->_user};
-            $role = $this->_auth->getIdentity()->{$this->_role};
+            $username = $this->auth->getIdentity()->{$this->user};
+            $role = $this->auth->getIdentity()->{$this->role};
         } else {
-            $username = $this->_auth->getIdentity();
+            $username = $this->auth->getIdentity();
             $role = '';
         }
         return $username . ' (' . $role . ')';

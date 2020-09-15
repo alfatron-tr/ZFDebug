@@ -6,7 +6,7 @@
  * @package    ZFDebug_Controller
  * @subpackage Plugins
  * @copyright  Copyright (c) 2008-2009 ZF Debug Bar Team (http://code.google.com/p/zfdebug)
- * @license    http://code.google.com/p/zfdebug/wiki/License     New BSD License
+ * @license    https://github.com/jokkedk/ZFDebug/blob/master/license     New BSD License
  * @version    $Id$
  */
 
@@ -20,11 +20,9 @@ require_once 'Zend/Db/Table/Abstract.php';
  * @package    ZFDebug_Controller
  * @subpackage Plugins
  * @copyright  Copyright (c) 2008-2009 ZF Debug Bar Team (http://code.google.com/p/zfdebug)
- * @license    http://code.google.com/p/zfdebug/wiki/License     New BSD License
+ * @license    https://github.com/jokkedk/ZFDebug/blob/master/license     New BSD License
  */
-class ZFDebug_Controller_Plugin_Debug_Plugin_Database
-    extends ZFDebug_Controller_Plugin_Debug_Plugin
-    implements ZFDebug_Controller_Plugin_Debug_Plugin_Interface
+class ZFDebug_Controller_Plugin_Debug_Plugin_Database extends ZFDebug_Controller_Plugin_Debug_Plugin implements ZFDebug_Controller_Plugin_Debug_Plugin_Interface
 {
 
     /**
@@ -32,14 +30,15 @@ class ZFDebug_Controller_Plugin_Debug_Plugin_Database
      *
      * @var string
      */
-    protected $_identifier = 'database';
+    protected $identifier = 'database';
 
     /**
      * @var array
      */
-    protected $_db = array();
+    protected $db = array();
 
-    protected $_explain = false;
+    protected $explain = false;
+    protected $backtrace = false;
 
     /**
      * Create ZFDebug_Controller_Plugin_Debug_Plugin_Variables
@@ -51,23 +50,28 @@ class ZFDebug_Controller_Plugin_Debug_Plugin_Database
     {
         if (!isset($options['adapter']) || !count($options['adapter'])) {
             if (Zend_Db_Table_Abstract::getDefaultAdapter()) {
-                $this->_db[0] = Zend_Db_Table_Abstract::getDefaultAdapter();
-                $this->_db[0]->getProfiler()->setEnabled(true);
+                $this->db[0] = Zend_Db_Table_Abstract::getDefaultAdapter();
+                if (isset($options['backtrace']) && $options['backtrace']) {
+                    $this->backtrace = true;
+                    $this->db[0]->setProfiler(new ZFDebug_Db_Profiler(true));
+                } else {
+                    $this->db[0]->getProfiler()->setEnabled(true);
+                }
             }
-        } else if ($options['adapter'] instanceof Zend_Db_Adapter_Abstract ) {
-            $this->_db[0] = $options['adapter'];
-            $this->_db[0]->getProfiler()->setEnabled(true);
+        } elseif ($options['adapter'] instanceof Zend_Db_Adapter_Abstract) {
+            $this->db[0] = $options['adapter'];
+            $this->db[0]->getProfiler()->setEnabled(true);
         } else {
             foreach ($options['adapter'] as $name => $adapter) {
                 if ($adapter instanceof Zend_Db_Adapter_Abstract) {
                     $adapter->getProfiler()->setEnabled(true);
-                    $this->_db[$name] = $adapter;
+                    $this->db[$name] = $adapter;
                 }
             }
         }
 
         if (isset($options['explain'])) {
-            $this->_explain = (bool)$options['explain'];
+            $this->explain = (bool)$options['explain'];
         }
     }
 
@@ -78,7 +82,7 @@ class ZFDebug_Controller_Plugin_Debug_Plugin_Database
      */
     public function getIdentifier()
     {
-        return $this->_identifier;
+        return $this->identifier;
     }
 
     /**
@@ -98,10 +102,10 @@ class ZFDebug_Controller_Plugin_Debug_Plugin_Database
      */
     public function getTab()
     {
-        if (!$this->_db)
+        if (!$this->db) {
             return 'No adapter';
-
-        foreach ($this->_db as $adapter) {
+        }
+        foreach ($this->db as $adapter) {
             $profiler = $adapter->getProfiler();
             $adapterInfo[] = $profiler->getTotalNumQueries() . ' in '
                            . round($profiler->getTotalElapsedSecs()*1000, 2) . ' ms';
@@ -118,9 +122,9 @@ class ZFDebug_Controller_Plugin_Debug_Plugin_Database
      */
     public function getPanel()
     {
-        if (!$this->_db)
+        if (!$this->db) {
             return '';
-
+        }
         $html = '<h4>Database queries';
 
         // @TODO: This is always on?
@@ -137,10 +141,10 @@ class ZFDebug_Controller_Plugin_Debug_Plugin_Database
     public function getProfile()
     {
         $queries = '';
-        foreach ($this->_db as $name => $adapter) {
+        foreach ($this->db as $name => $adapter) {
             if ($profiles = $adapter->getProfiler()->getQueryProfiles()) {
                 $adapter->getProfiler()->setEnabled(false);
-                if (1 < count($this->_db)) {
+                if (1 < count($this->db)) {
                     $queries .= '<h4>Adapter '.$name.'</h4>';
                 }
                 $queries .='<table cellspacing="0" cellpadding="0" width="100%">';
@@ -149,7 +153,7 @@ class ZFDebug_Controller_Plugin_Debug_Plugin_Database
                            . sprintf('%0.2f', $profile->getElapsedSecs()*1000)
                            . "ms</td>\n<td>";
                     $params = $profile->getQueryParams();
-                    array_walk($params, array($this, '_addQuotes'));
+                    array_walk($params, array($this, 'addQuotes'));
                     $paramCount = count($params);
                     if ($paramCount) {
                         $queries .= htmlspecialchars(preg_replace(array_fill(0, $paramCount, '/\?/'), $params, $profile->getQuery(), 1));
@@ -161,7 +165,7 @@ class ZFDebug_Controller_Plugin_Debug_Plugin_Database
                                          $adapter instanceof Zend_Db_Adapter_Pdo_Mysql);
 
                     # Run explain if enabled, supported adapter and SELECT query
-                    if ($this->_explain && $supportedAdapter) {
+                    if ($this->explain && $supportedAdapter) {
                         $queries .= "</td><td style='color:#7F7F7F;padding-left:2em;' nowrap>";
 
                         foreach ($adapter->fetchAll('EXPLAIN '.$profile->getQuery()) as $explain) {
@@ -186,6 +190,16 @@ class ZFDebug_Controller_Plugin_Debug_Plugin_Database
                     }
 
                     $queries .= "</td>\n</tr>\n";
+                    if ($this->backtrace) {
+                        $trace = $profile->getTrace();
+                        array_walk(
+                            $trace,
+                            function (&$v, $k) {
+                                $v = ($k+1).'. '.$v;
+                            }
+                        );
+                        $queries .= "<tr>\n<td></td>\n<td>".implode('<br>', $trace)."</td>\n</tr>\n";
+                    }
                 }
                 $queries .= "</table>\n";
             }
@@ -194,7 +208,7 @@ class ZFDebug_Controller_Plugin_Debug_Plugin_Database
     }
 
     // For adding quotes to query params
-    protected function _addQuotes(&$value, $key)
+    protected function addQuotes(&$value, $key)
     {
         $value = "'" . $value . "'";
     }
